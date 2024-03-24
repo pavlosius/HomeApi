@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AutoMapper;
+using HomeApi.Contracts.Models.Devices;
 using HomeApi.Contracts.Models.Rooms;
 using HomeApi.Data.Models;
 using HomeApi.Data.Repos;
@@ -22,9 +24,26 @@ namespace HomeApi.Controllers
             _repository = repository;
             _mapper = mapper;
         }
-        
+
         //TODO: Задание - добавить метод на получение всех существующих комнат
-        
+        /// <summary>
+        /// Получение всех существующих комнат
+        /// </summary>
+        [HttpGet]
+        [Route("")]
+        public async Task<IActionResult> GetRooms()
+        {
+            var existingRooms = await _repository.GetAllRooms();
+
+            var resp = new GetRoomsResponse
+            {
+                RoomAmount = existingRooms.Length,
+                Rooms = _mapper.Map<Room[], RoomView[]>(existingRooms)
+            };
+
+            return StatusCode(200, resp);
+        }
+
         /// <summary>
         /// Добавление комнаты
         /// </summary>
@@ -41,6 +60,23 @@ namespace HomeApi.Controllers
             }
             
             return StatusCode(409, $"Ошибка: Комната {request.Name} уже существует.");
+        }
+
+        /// <summary>
+        /// Удаление существующей комнаты
+        /// </summary>
+        [HttpPost]
+        [Route("{name}")]
+        public async Task<IActionResult> Delete(
+            [FromRoute] String name)
+        {
+            var room = await _repository.GetRoomByName(name);
+            if (room == null)
+                return StatusCode(400, $"Ошибка: Комнаты с именем {room} не существует.");
+
+            await _repository.DeleteRoom(room);
+
+            return StatusCode(200, $"Комната {room.Name} удалена!");
         }
     }
 }

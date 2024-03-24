@@ -24,7 +24,15 @@ namespace HomeApi.Data.Repos
         {
             return await _context.Rooms.Where(r => r.Name == name).FirstOrDefaultAsync();
         }
-        
+
+        /// <summary>
+        /// Выгрузить все комнатф
+        /// </summary>
+        public async Task<Room[]> GetAllRooms()
+        {
+            return await _context.Rooms.ToArrayAsync();
+        }
+
         /// <summary>
         ///  Добавить новую комнату
         /// </summary>
@@ -34,6 +42,15 @@ namespace HomeApi.Data.Repos
             if (entry.State == EntityState.Detached)
                 await _context.Rooms.AddAsync(room);
             
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Удалить существующую комнату
+        /// </summary>
+        public async Task DeleteRoom(Room room)
+        {
+            _context.Rooms.Remove(room);
             await _context.SaveChangesAsync();
         }
     }
