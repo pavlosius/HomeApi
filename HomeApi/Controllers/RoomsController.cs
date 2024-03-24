@@ -4,6 +4,7 @@ using AutoMapper;
 using HomeApi.Contracts.Models.Devices;
 using HomeApi.Contracts.Models.Rooms;
 using HomeApi.Data.Models;
+using HomeApi.Data.Queries;
 using HomeApi.Data.Repos;
 using Microsoft.AspNetCore.Mvc;
 
@@ -77,6 +78,27 @@ namespace HomeApi.Controllers
             await _repository.DeleteRoom(room);
 
             return StatusCode(200, $"Комната {room.Name} удалена!");
+        }
+
+        /// <summary>
+        /// Обновление существующей комнаты
+        /// </summary>
+        [HttpPut]
+        [Route("{name}")]
+        public async Task<IActionResult> Edit(
+            [FromRoute] String name,
+            [FromBody] EditRoomRequest request)
+        {
+            var room = await _repository.GetRoomByName(name);
+            if (room == null)
+                return StatusCode(400, $"Ошибка: Комнаты с именем {name} не существует. Сначала подключите комнату!");
+
+            await _repository.UpdateRoom(
+                room,
+                new UpdateRoomQuery(request.NewName, request.NewArea, request.NewGasConnected, request.NewVoltage)
+            );
+
+            return StatusCode(200, $"Команат обновлена! \nИмя - {room.Name}, \nПлощадь, кв.м - {room.Area},  \nНаличие газа - {room.GasConnected}, \nНапряжение, В - {room.Voltage}");
         }
     }
 }
